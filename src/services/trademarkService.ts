@@ -3,12 +3,21 @@ import { SearchParams, SearchResponse } from '../types/trademark';
 
 export const searchTrademarks = async (params: SearchParams): Promise<SearchResponse> => {
   try {
+    // Clean up empty arrays to match expected API format
+    const requestParams = {
+      ...params,
+      status: params.status.length ? params.status : [],
+      owners: params.owners.length ? params.owners : [],
+    };
+
+    console.log('Sending search request with params:', requestParams);
+
     const response = await fetch('https://vit-tm-task.api.trademarkia.app/api/v3/us', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(params),
+      body: JSON.stringify(requestParams),
     });
 
     if (!response.ok) {
@@ -16,8 +25,9 @@ export const searchTrademarks = async (params: SearchParams): Promise<SearchResp
     }
 
     const data = await response.json();
+    console.log('API Response:', data);
     
-    // Mock transformation - in a real app, adjust this based on actual API response
+    // Transform API response to match our frontend model
     return {
       trademarks: data.response?.docs?.map((doc: any) => ({
         mark: doc.mark_text,

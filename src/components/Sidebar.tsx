@@ -6,19 +6,72 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Separator } from '@/components/ui/separator';
 import { Textarea } from '@/components/ui/textarea';
+import {
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuTrigger
+} from '@/components/ui/dropdown-menu';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 interface SidebarProps {
   onCheckRegistrability: () => void;
+  onFilterChange?: (filters: { status: string[]; owners: string[] }) => void;
 }
 
-const Sidebar: React.FC<SidebarProps> = ({ onCheckRegistrability }) => {
+const Sidebar: React.FC<SidebarProps> = ({ onCheckRegistrability, onFilterChange }) => {
   const [nameQuery, setNameQuery] = useState('');
   const [description, setDescription] = useState('');
   const [trademarkName, setTrademarkName] = useState('');
   const [selectedCountry, setSelectedCountry] = useState('United States');
+  const [selectedStatuses, setSelectedStatuses] = useState<string[]>([]);
+  const [selectedOwners, setSelectedOwners] = useState<string[]>([]);
+  const [ownerSearchQuery, setOwnerSearchQuery] = useState('');
   
-  const statusOptions = ['All', 'Registered', 'Pending', 'Abandoned', 'Others'];
-  const owners = ['Tesla, Inc.', 'LEGALFORCE RAPC.', 'SpaceX Inc.', 'SpooqX Inc.'];
+  const statusOptions = ['Registered', 'Pending', 'Abandoned', 'Cancelled', 'Expired'];
+  const ownerOptions = [
+    'Tesla, Inc.', 
+    'LEGALFORCE RAPC.', 
+    'SpaceX Inc.', 
+    'SpooqX Inc.', 
+    'Nike, Inc.', 
+    'Apple Inc.', 
+    'Microsoft Corporation'
+  ];
+
+  // Filter owners based on search query
+  const filteredOwners = ownerSearchQuery 
+    ? ownerOptions.filter(owner => 
+        owner.toLowerCase().includes(ownerSearchQuery.toLowerCase()))
+    : ownerOptions;
+
+  const handleStatusChange = (status: string) => {
+    setSelectedStatuses(prev => {
+      const newStatuses = prev.includes(status) 
+        ? prev.filter(s => s !== status) 
+        : [...prev, status];
+      
+      if (onFilterChange) {
+        onFilterChange({ status: newStatuses, owners: selectedOwners });
+      }
+      
+      return newStatuses;
+    });
+  };
+
+  const handleOwnerChange = (owner: string) => {
+    setSelectedOwners(prev => {
+      const newOwners = prev.includes(owner) 
+        ? prev.filter(o => o !== owner) 
+        : [...prev, owner];
+      
+      if (onFilterChange) {
+        onFilterChange({ status: selectedStatuses, owners: newOwners });
+      }
+      
+      return newOwners;
+    });
+  };
 
   return (
     <div className="w-full md:w-80 px-4 py-4 space-y-8">
@@ -102,7 +155,11 @@ const Sidebar: React.FC<SidebarProps> = ({ onCheckRegistrability }) => {
         <div className="space-y-2">
           {statusOptions.map((status) => (
             <div key={status} className="flex items-center space-x-2">
-              <Checkbox id={`status-${status}`} />
+              <Checkbox 
+                id={`status-${status}`} 
+                checked={selectedStatuses.includes(status)}
+                onCheckedChange={() => handleStatusChange(status)}
+              />
               <label
                 htmlFor={`status-${status}`}
                 className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
@@ -122,6 +179,8 @@ const Sidebar: React.FC<SidebarProps> = ({ onCheckRegistrability }) => {
               type="text"
               placeholder="Search Owners"
               className="pr-8"
+              value={ownerSearchQuery}
+              onChange={(e) => setOwnerSearchQuery(e.target.value)}
             />
             <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
               <svg
@@ -142,9 +201,13 @@ const Sidebar: React.FC<SidebarProps> = ({ onCheckRegistrability }) => {
           </div>
           
           <div className="space-y-2 max-h-40 overflow-y-auto">
-            {owners.map((owner) => (
+            {filteredOwners.map((owner) => (
               <div key={owner} className="flex items-center space-x-2">
-                <Checkbox id={`owner-${owner}`} />
+                <Checkbox 
+                  id={`owner-${owner}`} 
+                  checked={selectedOwners.includes(owner)}
+                  onCheckedChange={() => handleOwnerChange(owner)}
+                />
                 <label
                   htmlFor={`owner-${owner}`}
                   className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"

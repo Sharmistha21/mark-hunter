@@ -37,6 +37,16 @@ const Index = () => {
     });
   };
   
+  // Handle filter changes
+  const handleFilterChange = (filters: { status: string[]; owners: string[] }) => {
+    setSearchParams((prev) => ({
+      ...prev,
+      status: filters.status,
+      owners: filters.owners,
+      page: 1
+    }));
+  };
+  
   // Query to fetch trademark data
   const { data, isLoading, isError, error } = useQuery({
     queryKey: ['trademarks', searchParams],
@@ -114,7 +124,9 @@ const Index = () => {
           ) : (
             <>
               <div className="flex items-center justify-between p-4 border-b">
-                <div></div> {/* Empty div for spacing */}
+                <div className="text-sm text-gray-500">
+                  {totalResults > 0 ? `${totalResults} results found` : 'No results found'}
+                </div>
                 <div className="flex items-center gap-4">
                   <button className="flex items-center text-gray-700 text-sm">
                     <Filter className="h-4 w-4 mr-1" />
@@ -149,7 +161,10 @@ const Index = () => {
         </div>
         
         <div className="md:w-80 order-1 md:order-2 border-l">
-          <Sidebar onCheckRegistrability={handleCheckRegistrability} />
+          <Sidebar 
+            onCheckRegistrability={handleCheckRegistrability} 
+            onFilterChange={handleFilterChange}
+          />
         </div>
       </main>
       
